@@ -1,23 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_preference/getstorage/view/todo_view.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:share_preference/middleware/home_page.dart';
+import 'package:share_preference/middleware/login_page.dart';
+import 'package:share_preference/middleware/splash_screen.dart';
+import 'middleware/auth_middleware.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  await GetStorage.init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: TodoView(),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/splash',
+      getPages: [
+        GetPage(
+          name: '/splash',
+          page: () => SplashScreen(),
+        ),
+        GetPage(
+          name: '/home',
+          page: () => HomePage(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: '/login',
+          page: () => LoginPage(),
+        ),
+      ],
     );
   }
 }
