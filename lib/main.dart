@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'getx/view/todo_view.dart';
+import 'package:share_preference/getstorage/view/todo_view.dart';
 
 void main() {
   runApp(MyApp());
