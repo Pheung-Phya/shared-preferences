@@ -1,5 +1,5 @@
 import '../model/todo.dart';
-import '../service/todo_service.dart';
+import 'service/todo_service.dart';
 
 class TodoController {
   final TodoService _todoService = TodoService();

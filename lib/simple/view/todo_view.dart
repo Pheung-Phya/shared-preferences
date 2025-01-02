@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import the intl package
 import '../controller/todo_controller.dart';
 import '../model/todo.dart';
 
 class TodoView extends StatefulWidget {
+  const TodoView({super.key});
+
   @override
   _TodoViewState createState() => _TodoViewState();
 }
@@ -13,12 +16,16 @@ class _TodoViewState extends State<TodoView> {
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _dateController =
+      TextEditingController(); // New controller for date
   DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _loadTodos();
+    _dateController.text = DateFormat('yyyy-MM-dd')
+        .format(_selectedDate); // Initialize date controller
   }
 
   Future<void> _loadTodos() async {
@@ -37,13 +44,13 @@ class _TodoViewState extends State<TodoView> {
     await _controller.addTodo(todo);
     _titleController.clear();
     _descriptionController.clear();
+    _dateController.clear();
     setState(() {
-      _selectedDate = DateTime.now(); // Reset date after adding todo
+      _selectedDate = DateTime.now();
     });
     _loadTodos();
   }
 
-  // Show Date Picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -54,16 +61,17 @@ class _TodoViewState extends State<TodoView> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
       });
     }
   }
 
-  // Method to show the bottom sheet for editing the todo
   void _showEditBottomSheet(int index) {
     final todo = _todos[index];
     _titleController.text = todo.title;
     _descriptionController.text = todo.description;
     _selectedDate = todo.dateTime;
+    _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
     showModalBottomSheet(
       context: context,
@@ -75,21 +83,23 @@ class _TodoViewState extends State<TodoView> {
             children: [
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(labelText: 'Title'),
               ),
               TextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(labelText: 'Description'),
               ),
-              SizedBox(height: 20),
-              // Display selected date
-              Text('Selected Date: ${_selectedDate.toLocal()}'.split(' ')[0]),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => _selectDate(context), // Open DatePicker
-                child: Text('Pick a Date'),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _dateController,
+                decoration: const InputDecoration(
+                  labelText: 'Select Date',
+                  suffixIcon: Icon(Icons.calendar_today),
+                ),
+                readOnly: true,
+                onTap: () => _selectDate(context),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   final updatedTodo = Todo(
@@ -100,26 +110,26 @@ class _TodoViewState extends State<TodoView> {
                   await _controller.updateTodo(index, updatedTodo);
                   _titleController.clear();
                   _descriptionController.clear();
+                  _dateController.clear();
                   setState(() {
-                    _selectedDate =
-                        DateTime.now(); // Reset date after updating todo
+                    _selectedDate = DateTime.now();
                   });
                   _loadTodos();
-                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.pop(context);
                 },
-                child: Text('Save'),
+                child: const Text('Save'),
               ),
               TextButton(
                 onPressed: () {
-                  // Clear the controllers when Cancel is pressed
                   _titleController.clear();
                   _descriptionController.clear();
+                  _dateController.clear();
                   setState(() {
-                    _selectedDate = DateTime.now(); // Reset the date
+                    _selectedDate = DateTime.now();
                   });
-                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.pop(context);
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
             ],
           ),
@@ -136,52 +146,59 @@ class _TodoViewState extends State<TodoView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Todo App')),
+      appBar: AppBar(title: const Text('Todo App')),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
             ),
           ),
-          SizedBox(height: 20),
-          // Display selected date
-          Text('Selected Date: ${_selectedDate.toLocal()}'.split(' ')[0]),
-          SizedBox(height: 10),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _dateController,
+            decoration: const InputDecoration(
+              labelText: 'Select Date',
+              suffixIcon: Icon(Icons.calendar_today),
+            ),
+            readOnly: true,
+            onTap: () => _selectDate(context),
+          ),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () async {
-              // Add todo with selected date
               _addTodo();
             },
-            child: Text('Add Todo'),
+            child: const Text('Add Todo'),
           ),
           Expanded(
             child: ListView.builder(
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 final todo = _todos[index];
+                final formattedDate =
+                    DateFormat('yyyy-MM-dd').format(todo.dateTime);
                 return ListTile(
                   title: Text(todo.title),
-                  subtitle: Text(todo.description),
+                  subtitle: Text('${todo.description}\nDate: $formattedDate'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () =>
-                            _showEditBottomSheet(index), // Show bottom sheet
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showEditBottomSheet(index),
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () => _deleteTodo(index),
                       ),
                     ],
