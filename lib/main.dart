@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_preference/view/todo_view.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() {}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
